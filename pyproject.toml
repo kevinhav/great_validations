@@ -1,0 +1,16 @@
+[project]
+name = "great-validations"
+version = "0.1.0"
+description = "A lightweight, expressive data validation library for pandas DataFrames"
+readme = "README.md"
+authors = [
+    { name = "kevinhav", email = "kevin.havis@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "pandas>=2.0.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.9,<0.10.0"]
+build-backend = "uv_build"
