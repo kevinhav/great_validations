@@ -2,11 +2,12 @@
 great-validations: A lightweight data validation library for pandas DataFrames.
 """
 
-import pandas as pd
+import json
 from datetime import datetime
 from enum import Enum
 from typing import Callable, Literal, Optional
-import json
+
+import pandas as pd
 
 
 class Severity(Enum):
@@ -79,7 +80,7 @@ class Rule:
         condition: Callable,
         error_msg: str,
         severity: Severity = Severity.ERROR,
-        columns: Optional[list] = None
+        columns: Optional[list] = None,
     ):
         self.name = name
         self.condition = condition
@@ -114,16 +115,16 @@ class Rule:
             ...     print(f"{result['violations']} rows have null IDs")
         """
         result = {
-            'rule': self.name,
-            'severity': self.severity.value,
-            'message': self.error_msg,
-            'columns': self.columns,
-            'status': 'passed',
-            'violations': 0,
-            'violation_pct': 0.0,
-            'total_rows': len(df),
-            'sample_indices': [],
-            'error': None
+            "rule": self.name,
+            "severity": self.severity.value,
+            "message": self.error_msg,
+            "columns": self.columns,
+            "status": "passed",
+            "violations": 0,
+            "violation_pct": 0.0,
+            "total_rows": len(df),
+            "sample_indices": [],
+            "error": None,
         }
 
         try:
@@ -131,17 +132,17 @@ class Rule:
             violations = df[~mask]
 
             if not violations.empty:
-                result['status'] = 'failed'
-                result['violations'] = len(violations)
-                result['violation_pct'] = round(100 * len(violations) / len(df), 2)
-                result['sample_indices'] = violations.head(5).index.tolist()
+                result["status"] = "failed"
+                result["violations"] = len(violations)
+                result["violation_pct"] = round(100 * len(violations) / len(df), 2)
+                result["sample_indices"] = violations.head(5).index.tolist()
 
         except KeyError as e:
-            result['status'] = 'error'
-            result['error'] = f"Column not found: {e}"
+            result["status"] = "error"
+            result["error"] = f"Column not found: {e}"
         except Exception as e:
-            result['status'] = 'error'
-            result['error'] = f"{type(e).__name__}: {e}"
+            result["status"] = "error"
+            result["error"] = f"{type(e).__name__}: {e}"
 
         return result
 
@@ -200,7 +201,7 @@ class DataValidator:
         self.rules.append(rule)
         return self
 
-    def validate(self, df: pd.DataFrame) -> 'ValidationReport':
+    def validate(self, df: pd.DataFrame) -> "ValidationReport":
         """
         Run all rules against a DataFrame.
 
@@ -268,7 +269,7 @@ class ValidationReport:
             ... else:
             ...     print(report.to_markdown())
         """
-        return all(r['status'] == 'passed' for r in self.results)
+        return all(r["status"] == "passed" for r in self.results)
 
     @property
     def summary(self) -> dict:
@@ -285,15 +286,15 @@ class ValidationReport:
             >>> report.summary['overall_status']
             'FAILED'
         """
-        statuses = [r['status'] for r in self.results]
+        statuses = [r["status"] for r in self.results]
         return {
-            'timestamp': self.timestamp.isoformat(),
-            'total_rows': self.total_rows,
-            'rules_checked': len(self.results),
-            'passed': statuses.count('passed'),
-            'failed': statuses.count('failed'),
-            'errors': statuses.count('error'),
-            'overall_status': 'PASSED' if self.passed else 'FAILED'
+            "timestamp": self.timestamp.isoformat(),
+            "total_rows": self.total_rows,
+            "rules_checked": len(self.results),
+            "passed": statuses.count("passed"),
+            "failed": statuses.count("failed"),
+            "errors": statuses.count("error"),
+            "overall_status": "PASSED" if self.passed else "FAILED",
         }
 
     def failures_only(self) -> list:
@@ -307,7 +308,7 @@ class ValidationReport:
             >>> for failure in report.failures_only():
             ...     print(f"{failure['rule']}: {failure['message']}")
         """
-        return [r for r in self.results if r['status'] != 'passed']
+        return [r for r in self.results if r["status"] != "passed"]
 
     def by_severity(self, severity: Severity) -> list:
         """
@@ -324,7 +325,7 @@ class ValidationReport:
             >>> if critical_issues:
             ...     raise ValueError("Critical validation failures!")
         """
-        return [r for r in self.results if r['severity'] == severity.value]
+        return [r for r in self.results if r["severity"] == severity.value]
 
     def to_dataframe(self) -> pd.DataFrame:
         """
@@ -338,7 +339,7 @@ class ValidationReport:
             >>> df[df['status'] == 'failed'][['rule', 'violations']]
         """
         df = pd.DataFrame(self.results)
-        df['columns'] = df['columns'].apply(lambda x: ', '.join(x) if x else '')
+        df["columns"] = df["columns"].apply(lambda x: ", ".join(x) if x else "")
         return df
 
     def to_json(self, path: Optional[str] = None) -> str:
@@ -355,14 +356,11 @@ class ValidationReport:
             >>> json_str = report.to_json()  # Get as string
             >>> report.to_json('report.json')  # Save to file
         """
-        output = {
-            'summary': self.summary,
-            'results': self.results
-        }
+        output = {"summary": self.summary, "results": self.results}
         json_str = json.dumps(output, indent=2, default=str)
 
         if path:
-            with open(path, 'w') as f:
+            with open(path, "w") as f:
                 f.write(json_str)
         return json_str
 
@@ -384,7 +382,7 @@ class ValidationReport:
             ...
         """
         lines = [
-            f"# Data Validation Report",
+            "# Data Validation Report",
             f"**Timestamp:** {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}",
             f"**Rows Checked:** {self.total_rows:,}",
             f"**Overall Status:** {'PASSED' if self.passed else 'FAILED'}",
@@ -404,7 +402,7 @@ class ValidationReport:
             lines.append("|------|----------|------------|---|---------|")
 
             for r in failures:
-                if r['status'] == 'error':
+                if r["status"] == "error":
                     lines.append(f"| {r['rule']} | ERROR | - | - | {r['error']} |")
                 else:
                     lines.append(
@@ -421,6 +419,7 @@ class ValidationReport:
 
 
 # --- Helper functions for common validation patterns ---
+
 
 def not_null(column: str) -> Callable[[pd.DataFrame], pd.Series]:
     """
@@ -443,7 +442,9 @@ def not_null(column: str) -> Callable[[pd.DataFrame], pd.Series]:
     return lambda df: df[column].notna()
 
 
-def unique_values(column: str, keep: Literal['first', 'last', False] = 'first') -> Callable[[pd.DataFrame], pd.Series]:
+def unique_values(
+    column: str, keep: Literal["first", "last", False] = "first"
+) -> Callable[[pd.DataFrame], pd.Series]:
     """
     Create a condition that checks for unique values (no duplicates).
 
