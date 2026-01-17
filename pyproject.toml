@@ -7,6 +7,7 @@ authors = [
     { name = "kevinhav", email = "kevin.havis@gmail.com" }
 ]
 requires-python = ">=3.14"
+license = "MIT"
 dependencies = [
     "pandas>=2.0.0",
 ]
